@@ -57,10 +57,8 @@ public class Book {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    // Business rule: "status is derived from available copies, not stored separately."
-    // This is intentionally NOT a @Column — it's computed on demand, so it can
-    // never drift out of sync with availableCopies. The DTO layer (Milestone 3)
-    // will call this when building the API response.
+    // "status is derived from available copies, not stored separately."
+    // This is intentionally NOT a @Column — it's computed on demand, so it ca never drift out of sync with availableCopies.
     @Transient
     public String getStatus() {
         return availableCopies != null && availableCopies > 0 ? "AVAILABLE" : "CHECKED_OUT";

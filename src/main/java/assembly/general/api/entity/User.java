@@ -25,8 +25,7 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    // Store the BCrypt hash here, never the raw password.
-    // Naming it passwordHash (not "password") makes that non-negotiable at a glance.
+
     @Column(nullable = false)
     private String passwordHash;
 

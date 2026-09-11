@@ -11,11 +11,11 @@ import java.util.UUID;
 
 public interface ReservationRepository extends JpaRepository<Reservation, UUID> {
 
-    // US-007's 5-reservation limit and US-008's active list both need this
+
     List<Reservation> findByUserIdAndStatusIn(UUID userId, List<ReservationStatus> statuses);
 
     long countByUserIdAndStatusIn(UUID userId, List<ReservationStatus> statuses);
 
-    // US-011's full borrowing history, paginated
+
     Page<Reservation> findByUserId(UUID userId, Pageable pageable);
 }

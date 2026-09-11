@@ -14,9 +14,7 @@ public interface BookRepository extends JpaRepository<Book, UUID> {
 
     Optional<Book> findByIsbn(String isbn);
 
-    // Combines the query/genre/isbn/availableOnly filters from US-005 into one
-    // query — nulls just skip the corresponding condition. You'll wire this up
-    // fully in Milestone 3, but the repository shape is decided here.
+
     @Query("""
         SELECT b FROM Book b
         WHERE (:query IS NULL OR LOWER(b.title) LIKE LOWER(CONCAT('%', :query, '%'))
