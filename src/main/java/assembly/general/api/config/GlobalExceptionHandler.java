@@ -40,4 +40,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorResponse("INTERNAL_SERVER_ERROR", "An unexpected error occurred", LocalDateTime.now()));
     }
+
+    @ExceptionHandler(assembly.general.api.exception.ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(assembly.general.api.exception.ResourceNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("NOT_FOUND", e.getMessage(), LocalDateTime.now()));
+    }
 }
