@@ -34,7 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
-        // No token, or wrong scheme: just pass through.
+        // No token, or wrong scheme: just pass through
         // this filter's only job is to populate the SecurityContext IF a valid token is present
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -52,7 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authToken);
         }
-        // If invalid, we deliberately do nothing here — entry point will return 401
+        // If invalid, we deliberately do nothing here , so entry point will return 401
 
         filterChain.doFilter(request, response);
     }

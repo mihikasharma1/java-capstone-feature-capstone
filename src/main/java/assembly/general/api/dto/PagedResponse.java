@@ -4,8 +4,7 @@ import lombok.Getter;
 
 import java.util.List;
 
-// Generic wrapper — reused later in Milestone 4 for /reservations/history,
-// which has the identical page/size/totalElements/totalPages/last shape.
+
 @Getter
 public class PagedResponse<T> {
     private final List<T> content;

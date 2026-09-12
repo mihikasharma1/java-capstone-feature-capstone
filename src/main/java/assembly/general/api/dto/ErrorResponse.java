@@ -5,7 +5,7 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
-// Matches the consistent error shape used across every endpoint in the contract
+
 @Getter
 @AllArgsConstructor
 public class ErrorResponse {

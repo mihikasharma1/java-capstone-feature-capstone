@@ -15,7 +15,7 @@ public class RegisterRequest {
     private String email;
 
     // Enforces the 4-part password rule from the contract in one regex:
-    // lookaheads check for lowercase, uppercase, digit, special char; min 8 chars overall.
+    //  check for lowercase, uppercase, digit, special char; min 8 chars overall.
     @NotBlank
     @Pattern(
             regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z0-9]).{8,}$",

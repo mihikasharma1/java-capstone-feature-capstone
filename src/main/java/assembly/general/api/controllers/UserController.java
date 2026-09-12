@@ -1,11 +1,14 @@
 package assembly.general.api.controllers;
 
 import assembly.general.api.dto.ProfileResponse;
+import assembly.general.api.dto.RoleUpdateRequest;
+import assembly.general.api.dto.RoleUpdateResponse;
 import assembly.general.api.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
@@ -21,5 +24,12 @@ public class UserController {
     public ProfileResponse getProfile(Authentication authentication) {
 
         return userService.getProfile(authentication.getName());
+    }
+
+    @PatchMapping("/{userId}/role")
+    public RoleUpdateResponse updateRole(
+            @PathVariable UUID userId,
+            @Valid @RequestBody RoleUpdateRequest request) {
+        return userService.updateRole(userId, request.getRole());
     }
 }

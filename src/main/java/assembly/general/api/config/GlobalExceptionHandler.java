@@ -7,6 +7,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import java.time.LocalDateTime;
 
@@ -45,5 +47,32 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNotFound(assembly.general.api.exception.ResourceNotFoundException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse("NOT_FOUND", e.getMessage(), LocalDateTime.now()));
+    }
+
+    @ExceptionHandler(assembly.general.api.exception.ReservationLimitExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleLimitExceeded(assembly.general.api.exception.ReservationLimitExceededException e) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("error", "RESERVATION_LIMIT_EXCEEDED");
+        body.put("message", e.getMessage());
+        body.put("currentReservations", e.getCurrentReservations());
+        return ResponseEntity.badRequest().body(body);
+    }
+
+    @ExceptionHandler(assembly.general.api.exception.BookUnavailableException.class)
+    public ResponseEntity<Map<String, Object>> handleBookUnavailable(assembly.general.api.exception.BookUnavailableException e) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("error", "BOOK_UNAVAILABLE");
+        body.put("message", e.getMessage());
+        body.put("availableCopies", e.getAvailableCopies());
+        return ResponseEntity.badRequest().body(body);
+    }
+
+    @ExceptionHandler(assembly.general.api.exception.InvalidStatusException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidStatus(assembly.general.api.exception.InvalidStatusException e) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("error", "INVALID_STATUS");
+        body.put("message", e.getMessage());
+        body.put("currentStatus", e.getCurrentStatus());
+        return ResponseEntity.badRequest().body(body);
     }
 }

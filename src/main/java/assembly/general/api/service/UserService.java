@@ -1,13 +1,18 @@
 package assembly.general.api.service;
 
 import assembly.general.api.dto.ProfileResponse;
+import assembly.general.api.dto.RoleUpdateResponse;
 import assembly.general.api.entity.ReservationStatus;
+import assembly.general.api.entity.Role;
 import assembly.general.api.entity.User;
+import assembly.general.api.exception.ResourceNotFoundException;
 import assembly.general.api.repository.ReservationRepository;
 import assembly.general.api.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -35,6 +40,20 @@ public class UserService {
                 user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(),
                 user.getPhoneNumber(), user.getRole(), user.getMembershipStatus(),
                 user.getMemberSince(), active, history
+        );
+    }
+
+    // addition to spec
+    public RoleUpdateResponse updateRole(UUID targetUserId, Role newRole) {
+        User user = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + targetUserId));
+
+        user.setRole(newRole);
+        userRepository.save(user);
+
+        return new RoleUpdateResponse(
+                user.getId(), user.getEmail(), user.getRole(),
+                "User role updated to " + newRole
         );
     }
 }

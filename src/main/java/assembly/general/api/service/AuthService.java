@@ -60,7 +60,7 @@ public class AuthService {
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
         } catch (Exception e) {
-            // Deliberately identical message
+            // deliberately identical message
             throw new BadCredentialsException("Invalid email or password");
         }
 

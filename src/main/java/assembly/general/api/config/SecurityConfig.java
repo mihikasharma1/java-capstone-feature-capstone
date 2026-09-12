@@ -1,5 +1,7 @@
 package assembly.general.api.config;
 
+import assembly.general.api.security.JwtAccessDeniedHandler;
+import assembly.general.api.security.JwtAuthenticationEntryPoint;
 import assembly.general.api.security.JwtAuthenticationFilter;
 import jakarta.servlet.Filter;
 import org.springframework.context.annotation.Bean;
@@ -19,13 +21,17 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
+    //security filter
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService;
+    private final JwtAuthenticationEntryPoint authenticationEntryPoint;
+    private final JwtAccessDeniedHandler accessDeniedHandler;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, UserDetailsService userDetailsService) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailsService = userDetailsService;
+        this.authenticationEntryPoint = new JwtAuthenticationEntryPoint();
+        this.accessDeniedHandler = new JwtAccessDeniedHandler();
     }
 
     @Bean
@@ -48,23 +54,25 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // stateless JWT API, no browser session/cookies to protect
+                .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Public per contract + user stories
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                         .requestMatchers("/api/catalog/**").permitAll()
-                        .requestMatchers("/h2-console/**").permitAll() // dev-only convenience
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll() // API docs, milestone 2 deliverable
+                        .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
-                        // Role-gated per contract
                         .requestMatchers("/api/reservations/*/checkout", "/api/reservations/*/return")
                         .hasRole("LIBRARIAN")
+                        .requestMatchers("/api/users/*/role")
+                        .hasRole("LIBRARIAN")
 
-                        // Everything else requires authentication
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin())) // needed for H2 console to render in an iframe
+                .exceptionHandling(handling -> handling
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore((Filter) jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

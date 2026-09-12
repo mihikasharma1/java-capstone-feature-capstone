@@ -38,7 +38,7 @@ public class JwtService {
                 .compact();
     }
 
-    // Contract specifies expiresIn in SECONDS (86400), but the property is in ms.
+    // TODO: CHECK Contract specifies expiresIn in SECONDS (86400), but the property is in ms.
     // Convert here so the rest of the app never has to think about units.
     public long getExpirationSeconds() {
         return expirationMs / 1000;

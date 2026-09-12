@@ -19,16 +19,12 @@ import java.util.UUID;
 @Service
 public class CatalogService {
 
-    // Whitelist of sortable fields per the contract. Anything else falls back
-    // to "title" rather than erroring or passing an arbitrary string straight
-    // to Sort.by() — that would let a caller sort by any entity field
-    // (including ones not meant to be exposed) or throw an obscure exception
-    // if the property doesn't exist.
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("title", "author", "publicationYear");
 
     private final BookRepository bookRepository;
 
     public CatalogService(BookRepository bookRepository) {
+
         this.bookRepository = bookRepository;
     }
 
@@ -41,9 +37,7 @@ public class CatalogService {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, safeSortBy));
 
-        // Empty strings from query params should behave like "not provided",
-        // not like "match empty string" — normalize blank to null so the
-        // repository's IS NULL branches actually trigger.
+        // empty strings from query params should behave like "not provided"
         String normalizedQuery = blankToNull(query);
         String normalizedGenre = blankToNull(genre);
         String normalizedIsbn = blankToNull(isbn);
