@@ -1,232 +1,121 @@
-# Digital Library Management System API
+# Library Management System — Capstone Submission
 
-## Business Context
+**Live URL:** http://library-management-api-env.eba-23bfdumz.us-east-1.elasticbeanstalk.com
 
-### Overview
+**Swagger UI:** http://library-management-api-env.eba-23bfdumz.us-east-1.elasticbeanstalk.com/swagger-ui/index.html
 
-The Digital Library Management System is a modern backend API solution designed to digitize and streamline library operations for public and institutional libraries transitioning from manual record-keeping to digital platforms.
-
-### Business Problem
-
-Traditional libraries face several operational challenges:
-
-- Manual tracking of book availability and reservations leads to errors and inefficiency
-- Limited visibility into borrowing patterns and inventory usage
-- Poor user experience with no self-service capabilities for browsing or reserving books
-- Difficulty managing overdue books and calculating late fees
-- Time-consuming checkout and return processes at the library desk
-
-### Solution
-
-Our Digital Library Management System provides:
-
-- **Self-service portal** for users to browse, search, and reserve books online
-- **Automated reservation management** with 7-day pickup windows
-- **Real-time availability tracking** to reduce operational overhead
-- **Librarian tools** for efficient checkout and return processing
-- **Borrowing history** for patrons to track their reading activity
-- **Scalable architecture** ready for cloud deployment
-
-### Target Users
-
-1. **Library Patrons**: Browse catalog, reserve books, view borrowing history
-2. **Librarians**: Process checkouts and returns, manage reservations
+**Health check:** http://library-management-api-env.eba-23bfdumz.us-east-1.elasticbeanstalk.com/actuator/health
 
 ---
 
-## Getting Started
+## 1. Overview
 
-### Core Requirements Documents
+A Spring Boot REST API for library book reservations, built across six milestones: data modeling, authentication, catalog service, reservation lifecycle, testing, and AWS deployment.
 
-**Review these foundational documents before implementation:**
+**Stack:** Java 21 (Corretto, production) / Java 25 (local dev) · Spring Boot 3.5.6 · Spring Data JPA / Hibernate · Spring Security + JWT (jjwt) · H2 (dev) / PostgreSQL on RDS (production) · JUnit 5 + Mockito + AssertJ · JaCoCo · springdoc-openapi (Swagger UI) · deployed via AWS Elastic Beanstalk (Corretto 21 on Amazon Linux 2023).
 
-1. **[User Stories](docs/user-stories.md)** - **START HERE**
-   - 11 user stories defining all system functionality
-   - Business requirements and acceptance criteria
-   - Your primary requirements document
+**Test coverage:** 91% overall instruction coverage (JaCoCo), 54 tests, 0 failures.
 
-2. **[API Contracts](docs/api-contracts.md)** - **CRITICAL**
-   - Complete external API interface specification
-   - All 10 endpoint definitions with request/response formats
-   - Defines the contract you must fulfill
-
-3. **[Development Environment Setup](docs/dev-enviroment-setup.md)**
-   - Initial project setup and local development configuration
-
-### Implementation Approach
-
-**Prioritize understanding requirements over implementation details:**
-
-- User Stories define business requirements and desired outcomes
-- API Contracts define the exact external interface
-- Milestone documents provide technical guidance and acceptance criteria
-
-You have flexibility in **HOW** you implement the solution, but must meet the requirements defined in User Stories and API Contracts.
+| Package | Coverage |
+|---|---|
+| `dto` | 100% |
+| `entity` | 100% |
+| `security` | 94% |
+| `controllers` | 93% |
+| `config` | 89% |
+| `service` | 90% |
+| `exception` | 82% |
 
 ---
 
-## Project Structure
+## 2. Setup & run
 
-### Requirements Documentation
+**Local (dev, H2):**
+```bash
+./mvnw clean install
+./mvnw spring-boot:run
+```
+Runs on `http://localhost:8080` with an in-memory H2 database, auto-seeded on every startup (see `DataSeeder`, `@Profile("dev")`) with 3 users and 7 books. Seeded accounts: `patron@example.com` / `librarian@example.com` / `patron2@example.com`, all password `TestPass123!`.
 
-- **[User Stories](docs/user-stories.md)** - Business requirements
-- **[API Contracts](docs/api-contracts.md)** - External API interface
+H2 console: `http://localhost:8080/h2-console` (JDBC URL `jdbc:h2:mem:librarydb`, user `sa`, no password).
 
-### Implementation Guides (Milestones)
+**Tests + coverage:**
+```bash
+./mvnw clean test
+open target/site/jacoco/index.html
+```
 
-1. [Milestone 1: Data Modeling](docs/milestone-1-data-modeling-guide.md)
-2. [Milestone 2: User Service & Authentication](docs/milestone-2-user-service-authentication.md)
-3. [Milestone 3: Catalog Service](docs/milestone-3-catalog-service.md)
-4. [Milestone 4: Reservation Service](docs/milestone-4-reservation-service-core-functionality.md)
-5. [Milestone 5: Testing & Quality Assurance](docs/milestone-5-testing-quality-assurance.md)
-6. [Milestone 6: Deployment & Production Readiness](docs/milestone-6-deployment-production-readiness.md)
-
-### Environment Setup
-
-- [Development Environment Setup](docs/dev-enviroment-setup.md)
-- [Production Environment Setup](docs/production-enviroment-setup.md)
+**Production:** see live URL above. Deployed on AWS Elastic Beanstalk with a PostgreSQL RDS backend — see §6 for full infrastructure details and proof.
 
 ---
 
-## API Endpoints (10 Total)
+## 3. Architecture
 
-### Authentication & User Management (3)
+Standard layered structure:
 
-- `POST /api/auth/register` - Create new user account
-- `POST /api/auth/login` - Authenticate and receive JWT token
-- `GET /api/users/profile` - View user profile with statistics
+```
+controller  → deserializes requests, calls one service method, returns a DTO
+service     → business rules, orchestration, entity ↔ DTO mapping
+repository  → Spring Data JPA interfaces; query logic only
+entity      → JPA-mapped domain objects, mirror the DB schema
+dto         → exact request/response wire shapes
+security    → JWT issuance/validation, Spring Security wiring
+config      → cross-cutting Spring configuration (security, auditing, OpenAPI)
+```
 
-### Catalog Management (2)
+<!-- Screenshot: Swagger UI landing page listing all endpoints -->
+<img width="1890" height="987" alt="Screenshot 2026-09-13 161914" src="https://github.com/user-attachments/assets/9ed4272b-d47f-4c4c-95a8-5894eabb7efe" />
 
-- `GET /api/catalog/books` - Browse and search books with pagination
-- `GET /api/catalog/books/{bookId}` - View detailed book information
-
-### Reservation Management (5)
-
-- `POST /api/reservations` - Reserve an available book
-- `GET /api/reservations` - View active reservations
-- `POST /api/reservations/{reservationId}/checkout` - Checkout book (Librarian only)
-- `POST /api/reservations/{reservationId}/return` - Return book with late fee calculation (Librarian only)
-- `GET /api/reservations/history` - View complete borrowing history
-
-**See [API Contracts](docs/api-contracts.md) for complete specifications.**
 
 ---
 
-## Technical Stack
+## 4. Deliberate deviations from the spec
 
-### Required Technologies
+**a) No mechanism to create a LIBRARIAN account.** Every user defaults to `PATRON` (US-001), and the 10-endpoint contract has no way to promote one — meaning, as written, the system could never contain a librarian. Added:
+```
+PATCH /api/users/{userId}/role   (LIBRARIAN-only)
+```
+The very first librarian is still bootstrapped outside the API (dev: `DataSeeder`; prod: a one-time manual DB update via a temporary, immediately-terminated EC2 instance). This is the resolution to the "who grants the first privilege" problem in any role-based system — an open self-promotion endpoint would be a privilege-escalation hole.
 
-- **Java**: 17 or 21 (LTS)
-- **Spring Boot**: 3.2+
-- **Spring Security**: 6.x with JWT authentication
-- **Spring Data JPA**: Database access
-- **PostgreSQL**: 15+ (via Docker locally, RDS in production)
-- **Maven**: Build tool
-
-### Additional Libraries
-
-Choose appropriate libraries for:
-
-- JWT token handling
-- API documentation (e.g., SpringDoc OpenAPI)
-- Testing frameworks
-- Validation
-
-### Deployment
-
-- **AWS Elastic Beanstalk**: Application hosting
-- **AWS RDS**: PostgreSQL database
+**b) No mechanism to add books to the catalog.** The contract only supports browsing an already-populated catalog (US-004–006). Added:
+```
+POST /api/catalog/books   (LIBRARIAN-only)
+```
+`availableCopies` always initializes equal to `totalCopies`. Both additions reuse the existing `hasRole("LIBRARIAN")` pattern and error-handling shape rather than introducing anything new.
 
 ---
 
-## Success Criteria
+## 5. Issues found in the starter project, and fixes applied
 
-> Capstones are graded Pass/Fail with a score out of 20 and instructor feedback.
+**Security**
+- **The JWT signing secret was hardcoded in plaintext in `application-dev.properties` and committed/pushed to the repo.** Anyone with repo access could forge valid tokens. Fixed by moving the secret out of source control entirely: production reads `jwt.secret` from a `JWT_SECRET` environment variable (generated fresh via `openssl rand -base64 32`, never reused from the dev value). Going forward, no JWT secret exists in any tracked file.
+- `application-prod.properties` had a plaintext password fallback (`${RDS_PASSWORD:password}`) — fixed to `${RDS_PASSWORD}` with no fallback, so a missing production credential fails loudly instead of silently trying a guessable default.
 
-### User Story Compliance
 
-- All 11 user stories fully implemented
-- All acceptance criteria met
-- All business rules enforced (5 reservation limit, 7-day expiry, 14-day checkout, $1/day late fees)
+## 6. Proof it runs in production
 
-### API Contract Compliance
+**Green health check**, confirming both the app and its database connection are live:
+<img width="1053" height="588" alt="image" src="https://github.com/user-attachments/assets/5cd8da94-1ca6-4392-881b-96bd7b22fee3" />
+<img width="412" height="280" alt="image" src="https://github.com/user-attachments/assets/2bde8886-f4f8-453c-91b5-e86ea89bb97f" />
 
-- All 10 endpoints implemented as specified
-- Request/response formats match exactly
-- HTTP status codes correct
-- Error response format consistent
-- Authentication and authorization working properly
 
-### Technical Quality
+**Persistence across restarts:** restarted the Elastic Beanstalk environment mid-testing and confirmed a previously-registered user could still log in afterward — proving genuine PostgreSQL persistence, not H2-style wipe-on-restart behavior.
 
-- Minimum 80% test coverage
-- All endpoints tested (unit and integration)
-- Proper error handling (400, 401, 403, 404, 500)
-- Security properly implemented (JWT, role-based access)
-- Successfully deployed to cloud environment
+**Database is genuinely private, not publicly reachable:** attempted a direct connection from a local machine —
+```bash
+psql -h java-capstone.cuxwe6kqmml0.us-east-1.rds.amazonaws.com -U postgres -d librarydb
+```
+— which times out, confirming `Publicly accessible: No` is correctly enforced at the RDS level and the database is reachable only from within the VPC.
+<img width="1506" height="112" alt="image" src="https://github.com/user-attachments/assets/44a0cfc8-4fe2-4468-8eb2-be5eb43c4bcc" />
 
-### Functional Verification
-
-- Complete reservation lifecycle works (reserve → checkout → return)
-- Role-based access control enforced (PATRON vs LIBRARIAN)
-- Real-time availability tracking works correctly
-- Late fee calculation accurate
-- Pagination and search functional
 
 ---
 
-## Development Philosophy
+## 7. Deployment infrastructure
 
-### Requirements-Driven Development
+- **Platform:** Corretto 21 on Amazon Linux 2023 (Elastic Beanstalk, single-instance)
+- **Database:** PostgreSQL 15.x on RDS, `db.t4g.micro`, single-AZ, 20 GiB gp2, **not publicly accessible**
+- **Required environment variables:** `SPRING_PROFILES_ACTIVE=prod`, `SERVER_PORT=5000`, `RDS_HOSTNAME`, `RDS_PORT`, `RDS_DB_NAME`, `RDS_USERNAME`, `RDS_PASSWORD`, `JWT_SECRET`
+- **Networking:** RDS's security group allows inbound PostgreSQL/5432 specifically from the Elastic Beanstalk environment's security group (not the reverse — a mistake made and corrected during setup, see §6)
+- **Secrets:** no credentials are committed to source control; all are environment-variable-driven in production and generated fresh for this deployment (JWT secret via `openssl rand -base64 32`, RDS master password set independently of any dev-profile value)
 
-1. Understand the requirements (User Stories and API Contracts)
-2. Plan your implementation (data model, architecture)
-3. Build to meet the contract
-4. Verify completeness (test against acceptance criteria)
-
-### Implementation Flexibility
-
-You decide:
-
-- Internal code organization and architecture
-- Service layer design patterns
-- Repository implementation approaches
-- Validation strategies
-- Testing frameworks
-- Error handling mechanisms
-
-### Non-Negotiable Constraints
-
-You must adhere to:
-
-- User Story requirements and acceptance criteria
-- API Contract specifications
-- Business rules (reservation limits, dates, fees)
-- Technology stack (Spring Boot, PostgreSQL, JWT)
-- Security requirements (authentication, authorization)
-
----
-
-## Quick Start Guide
-
-1. Read [User Stories](docs/user-stories.md) to understand what you're building
-2. Study [API Contracts](docs/api-contracts.md) to understand the exact API interface
-3. Set up your environment using [Development Environment Setup](docs/dev-enviroment-setup.md)
-4. Follow the milestones for structured implementation guidance
-5. Test against requirements to verify acceptance criteria
-6. Deploy to production following Milestone 6 guidance
-
----
-
-## Support & Resources
-
-- **User Stories**: Business requirements and functionality definitions
-- **API Contracts**: External API interface specifications
-- **Milestone Guides**: Implementation guidance and acceptance criteria
-- **Spring Boot Documentation**: Framework reference
-- **PostgreSQL Documentation**: Database reference
-
----
-
-**Remember**: User Stories and API Contracts define **WHAT** you must build. Milestone documents suggest **HOW** you might approach it, but you have flexibility in implementation as long as you meet the requirements.
