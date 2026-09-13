@@ -1,5 +1,6 @@
 package assembly.general.api.service;
 
+import assembly.general.api.dto.BookCreateRequest;
 import assembly.general.api.dto.BookDetailResponse;
 import assembly.general.api.dto.BookSummaryResponse;
 import assembly.general.api.dto.PagedResponse;
@@ -74,6 +75,28 @@ public class CatalogService {
                 book.getGenre(), book.getPublicationYear(), book.getDescription(),
                 book.getTotalCopies(), book.getAvailableCopies(), book.getStatus()
         );
+    }
+
+    public BookDetailResponse createBook(BookCreateRequest request) {
+        if (bookRepository.findByIsbn(request.getIsbn()).isPresent()) {
+            throw new IllegalArgumentException("A book with this ISBN already exists");
+        }
+
+        Book book = new Book();
+        book.setIsbn(request.getIsbn());
+        book.setTitle(request.getTitle());
+        book.setAuthor(request.getAuthor());
+        book.setGenre(request.getGenre());
+        book.setPublicationYear(request.getPublicationYear());
+        book.setDescription(request.getDescription());
+        book.setPublisher(request.getPublisher());
+        book.setPageCount(request.getPageCount());
+        book.setLanguage(request.getLanguage());
+        book.setTotalCopies(request.getTotalCopies());
+        book.setAvailableCopies(request.getTotalCopies()); // all copies start available
+
+        Book saved = bookRepository.save(book);
+        return getBookDetail(saved.getId()); // reuse existing mapping logic
     }
 
     private String blankToNull(String s) {

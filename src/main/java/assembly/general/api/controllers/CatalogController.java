@@ -1,9 +1,13 @@
 package assembly.general.api.controllers;
 
+import assembly.general.api.dto.BookCreateRequest;
 import assembly.general.api.dto.BookDetailResponse;
 import assembly.general.api.dto.BookSummaryResponse;
 import assembly.general.api.dto.PagedResponse;
 import assembly.general.api.service.CatalogService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -35,5 +39,10 @@ public class CatalogController {
     @GetMapping("/books/{bookId}")
     public BookDetailResponse getBook(@PathVariable UUID bookId) {
         return catalogService.getBookDetail(bookId);
+    }
+
+    @PostMapping("/books")
+    public ResponseEntity<BookDetailResponse> createBook(@Valid @RequestBody BookCreateRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(catalogService.createBook(request));
     }
 }

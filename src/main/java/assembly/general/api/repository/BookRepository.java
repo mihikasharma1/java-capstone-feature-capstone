@@ -16,13 +16,13 @@ public interface BookRepository extends JpaRepository<Book, UUID> {
 
 
     @Query("""
-        SELECT b FROM Book b
-        WHERE (:query IS NULL OR LOWER(b.title) LIKE LOWER(CONCAT('%', :query, '%'))
-                              OR LOWER(b.author) LIKE LOWER(CONCAT('%', :query, '%')))
-          AND (:genre IS NULL OR b.genre = :genre)
-          AND (:isbn IS NULL OR b.isbn = :isbn)
-          AND (:availableOnly = false OR b.availableCopies > 0)
-        """)
+    SELECT b FROM Book b
+    WHERE (:query IS NULL OR LOWER(b.title) LIKE LOWER(CONCAT('%', CAST(:query AS string), '%'))
+                          OR LOWER(b.author) LIKE LOWER(CONCAT('%', CAST(:query AS string), '%')))
+      AND (:genre IS NULL OR b.genre = CAST(:genre AS string))
+      AND (:isbn IS NULL OR b.isbn = CAST(:isbn AS string))
+      AND (:availableOnly = false OR b.availableCopies > 0)
+    """)
     Page<Book> search(
             @Param("query") String query,
             @Param("genre") String genre,
